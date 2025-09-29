@@ -289,6 +289,24 @@
             text-align: center;
         }
 
+        .sync-status {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255,255,255,0.9);
+            border-radius: 8px;
+            margin-bottom: 20px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .sync-status.syncing {
+            color: #2196F3;
+        }
+
+        .sync-status.synced {
+            color: #4caf50;
+        }
+
         @keyframes fadeInDown {
             from {
                 opacity: 0;
@@ -473,8 +491,12 @@
             </div>
 
             <div class="dashboard-container">
-                <h2>📊 Dashboard</h2>
+                <h2>📊 Live Dashboard</h2>
                 
+                <div class="sync-status" id="syncStatus">
+                    🔄 Loading data from Google Sheets...
+                </div>
+
                 <div class="dashboard-grid">
                     <div class="stat-card total">
                         <div class="stat-content">
@@ -525,13 +547,8 @@
     </div>
 
     <script>
-        const SHEET_ID = '1apBNAcAo2Uj4BYHDz6M8gbPigKBcj0T0TwAA-TC_32c';
-        
-        // Google Apps Script Web App URL - EMBEDDED
+        // ⚠️ IMPORTANT: Replace this with your actual Web App URL
         const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-ScfANh7YD-Gesdd832DsGUDaQqTwtrq1iS2t_BeSYcP8P8Sq4pGs9Ow3026AUyMugQ/exec';
-
-        // Store data locally for dashboard
-        let localData = JSON.parse(localStorage.getItem('registrationData') || '[]');
 
         // Form submission
         document.getElementById('registrationForm').addEventListener('submit', async (e) => {
@@ -548,16 +565,9 @@
             document.getElementById('loading').style.display = 'block';
             document.querySelector('.submit-btn').disabled = true;
             
-            // Store locally first
-            localData.push(data);
-            localStorage.setItem('registrationData', JSON.stringify(localData));
-            
-            // Update dashboard immediately
-            updateDashboardFromLocal();
-            
-            // Try to submit to Google Sheets
             try {
-                const response = await fetch(SCRIPT_URL, {
+                // Submit to Google Sheets
+                await fetch(SCRIPT_URL, {
                     method: 'POST',
                     mode: 'no-cors',
                     headers: {
@@ -566,68 +576,70 @@
                     body: JSON.stringify(data)
                 });
                 
-                console.log('✅ Data successfully sent to Google Sheets');
+                console.log('✅ Data sent to Google Sheets');
+                
+                // Show success message
+                document.getElementById('successMessage').style.display = 'block';
+                document.getElementById('errorMessage').style.display = 'none';
+                
+                // Reset form
+                e.target.reset();
+                
+                // Hide success message after 3 seconds
+                setTimeout(() => {
+                    document.getElementById('successMessage').style.display = 'none';
+                }, 3000);
+                
+                // Reload dashboard after 3 seconds
+                setTimeout(() => {
+                    loadDashboardData();
+                }, 3000);
                 
             } catch (error) {
-                console.log('⚠️ Could not connect to Google Sheets:', error);
-                console.log('📝 Data saved locally and will sync when connection is restored');
+                console.error('Error:', error);
+                document.getElementById('errorMessage').style.display = 'block';
+                document.getElementById('errorMessage').textContent = 'Submission error. Please try again.';
+            } finally {
+                document.getElementById('loading').style.display = 'none';
+                document.querySelector('.submit-btn').disabled = false;
             }
-            
-            // Show success message
-            document.getElementById('successMessage').style.display = 'block';
-            document.getElementById('errorMessage').style.display = 'none';
-            
-            // Reset form
-            e.target.reset();
-            
-            // Hide success message after 3 seconds
-            setTimeout(() => {
-                document.getElementById('successMessage').style.display = 'none';
-            }, 3000);
-            
-            // Hide loading
-            document.getElementById('loading').style.display = 'none';
-            document.querySelector('.submit-btn').disabled = false;
         });
 
-        // Update dashboard from local storage
-        function updateDashboardFromLocal() {
-            const data = localData;
+        // Load dashboard data from Google Sheets
+        async function loadDashboardData() {
+            const syncStatus = document.getElementById('syncStatus');
+            syncStatus.className = 'sync-status syncing';
+            syncStatus.textContent = '🔄 Syncing with Google Sheets...';
             
-            // Calculate statistics
-            const total = data.length;
-            const male = data.filter(d => d.gender === 'Male').length;
-            const female = data.filter(d => d.gender === 'Female').length;
-            const other = data.filter(d => d.gender === 'Other').length;
-            
-            // Count trades
-            const tradeCounts = {};
-            data.forEach(d => {
-                tradeCounts[d.trade] = (tradeCounts[d.trade] || 0) + 1;
-            });
-            const trades = Object.entries(tradeCounts)
-                .map(([name, count]) => ({ name, count }))
-                .sort((a, b) => b.count - a.count)
-                .slice(0, 10);
-            
-            // Count castes
-            const casteCounts = {};
-            data.forEach(d => {
-                casteCounts[d.caste] = (casteCounts[d.caste] || 0) + 1;
-            });
-            const castes = Object.entries(casteCounts)
-                .map(([name, count]) => ({ name, count }))
-                .sort((a, b) => b.count - a.count);
-            
-            // Update dashboard
-            updateDashboard({
-                total,
-                male,
-                female,
-                other,
-                trades,
-                castes
-            });
+            try {
+                // Add cache buster to prevent caching
+                const cacheBuster = new Date().getTime();
+                const response = await fetch(`${SCRIPT_URL}?action=getData&t=${cacheBuster}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    updateDashboard(result.data);
+                    syncStatus.className = 'sync-status synced';
+                    const lastUpdate = new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' });
+                    syncStatus.textContent = `✅ Last synced at ${lastUpdate}`;
+                } else {
+                    throw new Error('Invalid data format');
+                }
+            } catch (error) {
+                console.error('Error loading dashboard:', error);
+                syncStatus.className = 'sync-status';
+                syncStatus.textContent = '⚠️ Could not connect to Google Sheets. Retrying...';
+                
+                // Show empty dashboard
+                updateDashboard({
+                    total: 0,
+                    male: 0,
+                    female: 0,
+                    other: 0,
+                    trades: [],
+                    castes: []
+                });
+            }
         }
 
         function updateDashboard(data) {
@@ -643,7 +655,7 @@
                     <span class="trade-name">${trade.name}</span>
                     <span class="trade-count">${trade.count}</span>
                 </div>
-            `).join('') : '<p style="text-align: center; color: #999; padding: 20px;">No data available yet</p>';
+            `).join('') : '<p style="text-align: center; color: #999; padding: 20px;">No applications yet</p>';
             document.getElementById('tradesChart').innerHTML = tradesHTML;
 
             // Update caste chart
@@ -652,7 +664,7 @@
                     <span class="trade-name">${caste.name}</span>
                     <span class="trade-count">${caste.count}</span>
                 </div>
-            `).join('') : '<p style="text-align: center; color: #999; padding: 20px;">No data available yet</p>';
+            `).join('') : '<p style="text-align: center; color: #999; padding: 20px;">No data available</p>';
             document.getElementById('casteChart').innerHTML = casteHTML;
         }
 
@@ -660,8 +672,11 @@
         function animateCount(elementId, targetValue) {
             const element = document.getElementById(elementId);
             const currentValue = parseInt(element.textContent) || 0;
-            const duration = 500;
-            const steps = 20;
+            
+            if (currentValue === targetValue) return;
+            
+            const duration = 1000;
+            const steps = 30;
             const increment = (targetValue - currentValue) / steps;
             let current = currentValue;
             let step = 0;
@@ -679,12 +694,15 @@
         }
 
         // Load dashboard on page load
-        updateDashboardFromLocal();
+        loadDashboardData();
 
-        // Log connection status
-        console.log('%c📋 ITI Registration System - Connected to Google Sheets', 'color: #4caf50; font-size: 16px; font-weight: bold;');
-        console.log('%cSheet ID: 1apBNAcAo2Uj4BYHDz6M8gbPigKBcj0T0TwAA-TC_32c', 'color: #666; font-size: 12px;');
-        console.log('%cAll form submissions are automatically saved to Google Sheets ✅', 'color: #4caf50; font-size: 12px;');
+        // Auto-refresh dashboard every 10 seconds
+        setInterval(loadDashboardData, 10000);
+
+        // Log connection info
+        console.log('%c📊 ITI Registration Dashboard - LIVE', 'color: #4caf50; font-size: 16px; font-weight: bold;');
+        console.log('%cDashboard syncs every 10 seconds', 'color: #666; font-size: 12px;');
+        console.log('%cEveryone sees the same real-time data from Google Sheets ✅', 'color: #4caf50; font-size: 12px;');
     </script>
 </body>
 </html>
