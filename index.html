@@ -1,0 +1,690 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ITI Nagpur - Short Term Courses Registration</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 30px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.95;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-bottom: 30px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .form-container, .dashboard-container {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+            animation: fadeInUp 0.8s ease-out;
+        }
+
+        .form-container h2, .dashboard-container h2 {
+            color: #667eea;
+            margin-bottom: 25px;
+            font-size: 1.8em;
+            text-align: center;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+            font-size: 0.95em;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 1em;
+            transition: all 0.3s ease;
+            background: #f8f9fa;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+            background: white;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2);
+        }
+
+        .radio-group {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .radio-group label {
+            display: flex;
+            align-items: center;
+            font-weight: normal;
+            cursor: pointer;
+        }
+
+        .radio-group input[type="radio"] {
+            width: auto;
+            margin-right: 8px;
+            cursor: pointer;
+        }
+
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 1.1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin-top: 10px;
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .submit-btn:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.5);
+        }
+
+        .submit-btn:active {
+            transform: translateY(-1px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .stat-card {
+            padding: 25px;
+            border-radius: 15px;
+            color: white;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0) 100%);
+            z-index: 1;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px) scale(1.05);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+        }
+
+        .stat-card.total {
+            background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+        }
+
+        .stat-card.male {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        }
+
+        .stat-card.female {
+            background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        }
+
+        .stat-card.other {
+            background: linear-gradient(135deg, #30cfd0 0%, #330867 100%);
+        }
+
+        .stat-content {
+            position: relative;
+            z-index: 2;
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .stat-card .number {
+            font-size: 2.5em;
+            font-weight: bold;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
+        }
+
+        .chart-container {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 15px;
+            margin-top: 20px;
+        }
+
+        .chart-container h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .trade-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px;
+            margin-bottom: 10px;
+            background: white;
+            border-radius: 8px;
+            transition: all 0.3s ease;
+        }
+
+        .trade-item:hover {
+            transform: translateX(5px);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.1);
+        }
+
+        .trade-name {
+            font-weight: 600;
+            color: #333;
+        }
+
+        .trade-count {
+            background: #667eea;
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+        }
+
+        .footer {
+            text-align: center;
+            color: white;
+            padding: 20px;
+            background: rgba(0,0,0,0.2);
+            border-radius: 15px;
+            margin-top: 30px;
+        }
+
+        .footer p {
+            margin: 5px 0;
+        }
+
+        .success-message {
+            display: none;
+            background: #4caf50;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            animation: slideInDown 0.5s ease-out;
+        }
+
+        .error-message {
+            display: none;
+            background: #f44336;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes slideInDown {
+            from {
+                transform: translateY(-100%);
+            }
+            to {
+                transform: translateY(0);
+            }
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .required {
+            color: #f44336;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎓 Govt ITI Nagpur</h1>
+            <p>Short Term Courses - Registration Form</p>
+        </div>
+
+        <div class="main-content">
+            <div class="form-container">
+                <h2>Registration Form</h2>
+                <div id="successMessage" class="success-message">Registration Successful!</div>
+                <div id="errorMessage" class="error-message">Please fill all required fields!</div>
+                
+                <form id="registrationForm">
+                    <div class="form-group">
+                        <label>First Name <span class="required">*</span></label>
+                        <input type="text" name="firstName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Father's Name <span class="required">*</span></label>
+                        <input type="text" name="fatherName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Last Name/Surname <span class="required">*</span></label>
+                        <input type="text" name="lastName" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Gender <span class="required">*</span></label>
+                        <div class="radio-group">
+                            <label><input type="radio" name="gender" value="Male" required> Male</label>
+                            <label><input type="radio" name="gender" value="Female"> Female</label>
+                            <label><input type="radio" name="gender" value="Other"> Other</label>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Date of Birth <span class="required">*</span></label>
+                        <input type="date" name="dob" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>ITI Registration Number <span class="required">*</span></label>
+                        <input type="text" name="itiRegNo" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Name of Trade <span class="required">*</span></label>
+                        <select name="trade" required>
+                            <option value="">-- Select Trade --</option>
+                            <option value="Carpenter">Carpenter</option>
+                            <option value="Mason">Mason</option>
+                            <option value="Plumber">Plumber</option>
+                            <option value="Welder">Welder</option>
+                            <option value="COPA">COPA</option>
+                            <option value="Mechanic Diesel">Mechanic Diesel</option>
+                            <option value="Tractor Mechanic">Tractor Mechanic</option>
+                            <option value="PPO">PPO</option>
+                            <option value="Sheet Metal Worker">Sheet Metal Worker</option>
+                            <option value="Steno English">Steno English</option>
+                            <option value="Steno Marathi">Steno Marathi</option>
+                            <option value="Painter General">Painter General</option>
+                            <option value="Wireman">Wireman</option>
+                            <option value="Machinist Grinder">Machinist Grinder</option>
+                            <option value="RACT">RACT</option>
+                            <option value="Draughtsman Civil">Draughtsman Civil</option>
+                            <option value="Draughtsman Mechanic">Draughtsman Mechanic</option>
+                            <option value="Electrician">Electrician</option>
+                            <option value="Electronics Mechanic">Electronics Mechanic</option>
+                            <option value="Fitter">Fitter</option>
+                            <option value="Machinist">Machinist</option>
+                            <option value="Mech Motor Vehicle">Mech Motor Vehicle</option>
+                            <option value="Surveyor">Surveyor</option>
+                            <option value="Tool & Die Maker">Tool & Die Maker</option>
+                            <option value="Turner">Turner</option>
+                            <option value="ICTSM">ICTSM</option>
+                            <option value="Aeronautics Fitter">Aeronautics Fitter</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Caste Category <span class="required">*</span></label>
+                        <select name="caste" required>
+                            <option value="">-- Select Category --</option>
+                            <option value="SC">SC</option>
+                            <option value="ST">ST</option>
+                            <option value="VJNT">VJNT</option>
+                            <option value="OBC">OBC</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Which Short Term Course You Want Admission <span class="required">*</span></label>
+                        <select name="shortTermCourse" required>
+                            <option value="">-- Select Course --</option>
+                            <option value="Certificate Course In Automotive Washer-270Hrs.">Certificate Course In Automotive Washer-270Hrs.</option>
+                            <option value="Certificate Course In Assistant Mason-360 Hrs.">Certificate Course In Assistant Mason-360 Hrs.</option>
+                            <option value="Certificate Course IN Electrical Technician-420Hrs.">Certificate Course IN Electrical Technician-420Hrs.</option>
+                            <option value="Certificate Course IN Assistant Drone Technician-420Hrs.">Certificate Course IN Assistant Drone Technician-420Hrs.</option>
+                            <option value="Certificate Course In Electrician Domestic Solution-350 Hrs.">Certificate Course In Electrician Domestic Solution-350 Hrs.</option>
+                            <option value="Certficate Course In Digital Mitra-270 Hrs.">Certficate Course In Digital Mitra-270 Hrs.</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Phone Number <span class="required">*</span></label>
+                        <input type="tel" name="phone" pattern="[0-9]{10}" placeholder="10 digit mobile number" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Email ID <span class="required">*</span></label>
+                        <input type="email" name="email" required>
+                    </div>
+
+                    <button type="submit" class="submit-btn">Submit Registration</button>
+                </form>
+
+                <div class="loading" id="loading">
+                    <div class="spinner"></div>
+                    <p>Submitting...</p>
+                </div>
+            </div>
+
+            <div class="dashboard-container">
+                <h2>📊 Dashboard</h2>
+                
+                <div class="dashboard-grid">
+                    <div class="stat-card total">
+                        <div class="stat-content">
+                            <h3>Total Applicants</h3>
+                            <div class="number" id="totalCount">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card male">
+                        <div class="stat-content">
+                            <h3>Male</h3>
+                            <div class="number" id="maleCount">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card female">
+                        <div class="stat-content">
+                            <h3>Female</h3>
+                            <div class="number" id="femaleCount">0</div>
+                        </div>
+                    </div>
+
+                    <div class="stat-card other">
+                        <div class="stat-content">
+                            <h3>Other</h3>
+                            <div class="number" id="otherCount">0</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Top 10 Trades by Applications</h3>
+                    <div id="tradesChart"></div>
+                </div>
+
+                <div class="chart-container">
+                    <h3>Category Distribution</h3>
+                    <div id="casteChart"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>Govt ITI Nagpur</strong></p>
+            <p>Short Term Courses</p>
+            <p style="margin-top: 15px; font-size: 0.9em;">Form Developed by <strong>Anand Kathalewar</strong></p>
+        </div>
+    </div>
+
+    <script>
+        const SHEET_ID = '1apBNAcAo2Uj4BYHDz6M8gbPigKBcj0T0TwAA-TC_32c';
+        
+        // Google Apps Script Web App URL - EMBEDDED
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbz-ScfANh7YD-Gesdd832DsGUDaQqTwtrq1iS2t_BeSYcP8P8Sq4pGs9Ow3026AUyMugQ/exec';
+
+        // Store data locally for dashboard
+        let localData = JSON.parse(localStorage.getItem('registrationData') || '[]');
+
+        // Form submission
+        document.getElementById('registrationForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
+            
+            // Add timestamp
+            const now = new Date();
+            data.timestamp = now.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+            
+            // Show loading
+            document.getElementById('loading').style.display = 'block';
+            document.querySelector('.submit-btn').disabled = true;
+            
+            // Store locally first
+            localData.push(data);
+            localStorage.setItem('registrationData', JSON.stringify(localData));
+            
+            // Update dashboard immediately
+            updateDashboardFromLocal();
+            
+            // Try to submit to Google Sheets
+            try {
+                const response = await fetch(SCRIPT_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data)
+                });
+                
+                console.log('✅ Data successfully sent to Google Sheets');
+                
+            } catch (error) {
+                console.log('⚠️ Could not connect to Google Sheets:', error);
+                console.log('📝 Data saved locally and will sync when connection is restored');
+            }
+            
+            // Show success message
+            document.getElementById('successMessage').style.display = 'block';
+            document.getElementById('errorMessage').style.display = 'none';
+            
+            // Reset form
+            e.target.reset();
+            
+            // Hide success message after 3 seconds
+            setTimeout(() => {
+                document.getElementById('successMessage').style.display = 'none';
+            }, 3000);
+            
+            // Hide loading
+            document.getElementById('loading').style.display = 'none';
+            document.querySelector('.submit-btn').disabled = false;
+        });
+
+        // Update dashboard from local storage
+        function updateDashboardFromLocal() {
+            const data = localData;
+            
+            // Calculate statistics
+            const total = data.length;
+            const male = data.filter(d => d.gender === 'Male').length;
+            const female = data.filter(d => d.gender === 'Female').length;
+            const other = data.filter(d => d.gender === 'Other').length;
+            
+            // Count trades
+            const tradeCounts = {};
+            data.forEach(d => {
+                tradeCounts[d.trade] = (tradeCounts[d.trade] || 0) + 1;
+            });
+            const trades = Object.entries(tradeCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count)
+                .slice(0, 10);
+            
+            // Count castes
+            const casteCounts = {};
+            data.forEach(d => {
+                casteCounts[d.caste] = (casteCounts[d.caste] || 0) + 1;
+            });
+            const castes = Object.entries(casteCounts)
+                .map(([name, count]) => ({ name, count }))
+                .sort((a, b) => b.count - a.count);
+            
+            // Update dashboard
+            updateDashboard({
+                total,
+                male,
+                female,
+                other,
+                trades,
+                castes
+            });
+        }
+
+        function updateDashboard(data) {
+            // Update counts with animation
+            animateCount('totalCount', data.total || 0);
+            animateCount('maleCount', data.male || 0);
+            animateCount('femaleCount', data.female || 0);
+            animateCount('otherCount', data.other || 0);
+
+            // Update trades chart
+            const tradesHTML = data.trades && data.trades.length > 0 ? data.trades.map(trade => `
+                <div class="trade-item">
+                    <span class="trade-name">${trade.name}</span>
+                    <span class="trade-count">${trade.count}</span>
+                </div>
+            `).join('') : '<p style="text-align: center; color: #999; padding: 20px;">No data available yet</p>';
+            document.getElementById('tradesChart').innerHTML = tradesHTML;
+
+            // Update caste chart
+            const casteHTML = data.castes && data.castes.length > 0 ? data.castes.map(caste => `
+                <div class="trade-item">
+                    <span class="trade-name">${caste.name}</span>
+                    <span class="trade-count">${caste.count}</span>
+                </div>
+            `).join('') : '<p style="text-align: center; color: #999; padding: 20px;">No data available yet</p>';
+            document.getElementById('casteChart').innerHTML = casteHTML;
+        }
+
+        // Animate number counting
+        function animateCount(elementId, targetValue) {
+            const element = document.getElementById(elementId);
+            const currentValue = parseInt(element.textContent) || 0;
+            const duration = 500;
+            const steps = 20;
+            const increment = (targetValue - currentValue) / steps;
+            let current = currentValue;
+            let step = 0;
+
+            const timer = setInterval(() => {
+                step++;
+                current += increment;
+                if (step >= steps) {
+                    element.textContent = targetValue;
+                    clearInterval(timer);
+                } else {
+                    element.textContent = Math.round(current);
+                }
+            }, duration / steps);
+        }
+
+        // Load dashboard on page load
+        updateDashboardFromLocal();
+
+        // Log connection status
+        console.log('%c📋 ITI Registration System - Connected to Google Sheets', 'color: #4caf50; font-size: 16px; font-weight: bold;');
+        console.log('%cSheet ID: 1apBNAcAo2Uj4BYHDz6M8gbPigKBcj0T0TwAA-TC_32c', 'color: #666; font-size: 12px;');
+        console.log('%cAll form submissions are automatically saved to Google Sheets ✅', 'color: #4caf50; font-size: 12px;');
+    </script>
+</body>
+</html>
